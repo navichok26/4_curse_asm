@@ -18,7 +18,8 @@ if [ $? -ne 0 ]; then
 fi
 
 # Линковка с ld и libc
-ld "$OBJ_FILE" -o "$OUTPUT_FILE" -lc --dynamic-linker /lib64/ld-linux-x86-64.so.2
+# ld "$OBJ_FILE" -o "$OUTPUT_FILE" -lc --dynamic-linker /lib64/ld-linux-x86-64.so.2
+gcc "$OBJ_FILE" -o "$OUTPUT_FILE" -no-pie
 if [ $? -ne 0 ]; then
     echo "Ошибка при линковке"
     exit 1

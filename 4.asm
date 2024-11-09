@@ -16,10 +16,9 @@ section .bss
 section .text
     extern printf
     extern scanf
-    global main
 
-global _start
-_start:
+global main
+main:
     ; Initialize sum and i
     mov qword [sum], 0
     mov qword [i], 1
