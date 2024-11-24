@@ -19,6 +19,9 @@ section .text
 
 global main
 main:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32
     ; Initialize sum and i
     mov qword [sum], 0
     mov qword [i], 1
