@@ -109,33 +109,12 @@ int main() {
         : "rax", "rbx", "rcx", "rdx", "memory", "cc"
     );
 
-    // Проверка сформированных векторов до вывода
-    printf("Debugging vectors after ASM:\n");
-    for (i = 0; i < n; i++) {
-        printf("Element %d: Type=%d, int_vec=%d, float_vec=%d, char_vec=%d\n", 
-               i, elements[i].type, int_vec[i], float_vec[i], char_vec[i]);
-    }
+    // // Проверка сформированных векторов до вывода
+    // for (i = 0; i < n; i++) {
+    //     printf("Element %d: Type=%d, int_vec=%d, float_vec=%d, char_vec=%d\n", 
+    //            i, elements[i].type, int_vec[i], float_vec[i], char_vec[i]);
+    // }
 
-    // Ручное исправление векторов (обходное решение)
-    // Сбрасываем все векторы
-    for (i = 0; i < n; i++) {
-        int_vec[i] = float_vec[i] = char_vec[i] = 0;
-    }
-    
-    // Повторное заполнение векторов из исходных данных
-    for (i = 0; i < n; i++) {
-        switch (elements[i].type) {
-            case INT:
-                int_vec[i] = 1;
-                break;
-            case FLOAT:
-                float_vec[i] = 1;
-                break;
-            case CHAR:
-                char_vec[i] = 1;
-                break;
-        }
-    }
 
     // Вывод результатов
     printf("Int vector:    ");
