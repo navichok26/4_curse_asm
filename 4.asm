@@ -22,22 +22,19 @@ main:
     push rbp
     mov rbp, rsp
     sub rsp, 32
-    ; Initialize sum and i
+
     mov qword [sum], 0
     mov qword [i], 1
 
-    ; Prompt user
     mov rdi, prompt_fmt
     xor rax, rax
     call printf
 
-    ; Read input
     mov rdi, number_fmt
     lea rsi, [number]
     xor rax, rax
     call scanf
 
-    ; Display divisors message
     mov rdi, divisors_fmt
     xor rax, rax
     call printf
@@ -48,7 +45,6 @@ div_loop:
     cmp rax, rbx
     jge check_perfect
 
-    ; Check for divisor
     xor rdx, rdx
     mov rax, [number]
     mov rbx, [i]
@@ -61,11 +57,11 @@ div_loop:
     add rax, [i]
     mov qword [sum], rax
 
-    ; Display divisor
     mov rdi, number_fmt
     mov rsi, [i]
     xor rax, rax
     call printf
+
     mov rdi, newline
     xor rax, rax
     call printf
@@ -75,25 +71,21 @@ next_divisor:
     jmp div_loop
 
 check_perfect:
-    ; Print newline
     mov rdi, newline
     xor rax, rax
     call printf
 
-    ; Check for perfection
     mov rax, [sum]
     mov rbx, [number]
     cmp rax, rbx
     jne not_perfect
 
-    ; Display perfect message
     mov rdi, perfect_fmt
     xor rax, rax
     call printf
     jmp exit_program
 
 not_perfect:
-    ; Display not perfect message
     mov rdi, not_perfect_fmt
     xor rax, rax
     call printf
