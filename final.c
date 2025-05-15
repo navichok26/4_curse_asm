@@ -51,52 +51,52 @@ int main() {
         }
     }
 
-    // Ассемблерная вставка с синтаксисом Intel
+    // Ассемблерная вставка с синтаксисом AT&T
     asm volatile (
-        "mov ecx, %[n]\n"               // Загружаем n в ecx (счетчик цикла)
-        "test ecx, ecx\n"              // Если n == 0, выход
+        "mov %[n], %%ecx\n"               // Загружаем n в ecx
+        "test %%ecx, %%ecx\n"             // Если n == 0, выход
         "jz end_asm_loop\n"
-        "xor ebx, ebx\n"                // Индекс i = 0 (ebx)
+        "xor %%ebx, %%ebx\n"              // Индекс i = 0
 
         "start_asm_loop:\n"
-        "cmp ebx, ecx\n"               // Сравниваем i и n
-        "jge end_asm_loop\n"
+        "cmp %%ebx, %%ecx\n"              // Сравниваем i и n
+        "jle end_asm_loop\n"
 
         // Вычисляем адрес элемента
-        "mov eax, %[elements]\n"
-        "mov edx, ebx\n"
-        "imul edx, 8\n"               // i * sizeof(Element)
-        "add eax, edx\n"              // elements + i
+        "mov %[elements], %%eax\n"
+        "mov %%ebx, %%edx\n"
+        "imul $8, %%edx\n"               // i * sizeof(Element)
+        "add %%edx, %%eax\n"             // elements + i
 
         // Получаем тип элемента
-        "mov edx, [eax]\n"            // elements[i].type
+        "mov (%%eax), %%edx\n"            // elements[i].type
 
         // Проверяем тип и устанавливаем вектор
-        "cmp edx, 0\n"
+        "cmp $0, %%edx\n"
         "je set_int_label\n"
-        "cmp edx, 1\n"
+        "cmp $1, %%edx\n"
         "je set_float_label\n"
-        "cmp edx, 2\n"
+        "cmp $2, %%edx\n"
         "je set_char_label\n"
         "jmp next_iter\n"
 
         "set_int_label:\n"
-        "mov eax, %[int_vec]\n"
-        "mov byte ptr [eax + ebx], 1\n"
+        "mov %[int_vec], %%eax\n"
+        "movb $1, (%%eax,%%ebx)\n"
         "jmp next_iter\n"
 
         "set_float_label:\n"
-        "mov eax, %[float_vec]\n"
-        "mov byte ptr [eax + ebx], 1\n"
+        "mov %[float_vec], %%eax\n"
+        "movb $1, (%%eax,%%ebx)\n"
         "jmp next_iter\n"
 
         "set_char_label:\n"
-        "mov eax, %[char_vec]\n"
-        "mov byte ptr [eax + ebx], 1\n"
+        "mov %[char_vec], %%eax\n"
+        "movb $1, (%%eax,%%ebx)\n"
         "jmp next_iter\n"
 
         "next_iter:\n"
-        "inc ebx\n"
+        "incl %%ebx\n"
         "jmp start_asm_loop\n"
 
         "end_asm_loop:\n"
