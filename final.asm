@@ -230,8 +230,67 @@ print_int_done:
     xor eax, eax
     call printf
 
-    ; Аналогично для float_vec и char_vec (опущено для краткости)
-    ; ...
+    ; Вывод float вектора
+    lea rdi, [float_vec_msg]
+    xor eax, eax
+    call printf
+
+    mov qword [i], 0
+print_float_loop:
+    mov rax, [i]
+    cmp rax, [n]
+    jge print_float_done
+
+    mov rax, [float_vec]
+    add rax, [i]
+    movzx rsi, byte [rax]
+    lea rdi, [format_int]
+    xor eax, eax
+    call printf
+
+    lea rdi, [format_str]
+    lea rsi, [space]
+    xor eax, eax
+    call printf
+
+    inc qword [i]
+    jmp print_float_loop
+
+print_float_done:
+    lea rdi, [newline]
+    xor eax, eax
+    call printf
+
+    ; Вывод char вектора
+    lea rdi, [char_vec_msg]
+    xor eax, eax
+    call printf
+
+    mov qword [i], 0
+print_char_loop:
+    mov rax, [i]
+    cmp rax, [n]
+    jge print_char_done
+
+    mov rax, [char_vec]
+    add rax, [i]
+    movzx rsi, byte [rax]
+    lea rdi, [format_int]
+    xor eax, eax
+    call printf
+
+    lea rdi, [format_str]
+    lea rsi, [space]
+    xor eax, eax
+    call printf
+
+    inc qword [i]
+    jmp print_char_loop
+
+print_char_done:
+    lea rdi, [newline]
+    xor eax, eax
+    call printf
 
     ; Освобождение памяти
     mov rdi, [elements]
