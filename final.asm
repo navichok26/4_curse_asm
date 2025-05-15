@@ -78,7 +78,6 @@ input_loop:
     xor eax, eax
     call printf
 
-    sub  rsp, 8
     lea rdi, [format_int]
     lea rsi, [temp_int]
     xor eax, eax
@@ -105,6 +104,12 @@ input_int:
     xor eax, eax
     call printf
 
+    ; Получаем адрес текущего элемента
+    mov rax, [elements]
+    mov rcx, [i]
+    shl rcx, 3
+    add rax, rcx
+    
     lea rdi, [format_int]
     lea rsi, [rax+4]  ; value.i
     xor eax, eax
@@ -116,6 +121,12 @@ input_float:
     xor eax, eax
     call printf
 
+    ; Получаем адрес текущего элемента
+    mov rax, [elements]
+    mov rcx, [i]
+    shl rcx, 3
+    add rax, rcx
+    
     lea rdi, [format_float]
     lea rsi, [rax+4]  ; value.f
     xor eax, eax
@@ -127,6 +138,12 @@ input_char:
     xor eax, eax
     call printf
 
+    ; Получаем адрес текущего элемента
+    mov rax, [elements]
+    mov rcx, [i]
+    shl rcx, 3
+    add rax, rcx
+    
     lea rdi, [format_char]
     lea rsi, [rax+4]  ; value.c
     xor eax, eax
