@@ -53,7 +53,7 @@ int main() {
 
     // Ассемблерная вставка с синтаксисом AT&T
     asm volatile (
-        "mov %[n], %%ecx\n"               // Загружаем n в ecx
+        "movl %%ecx, %[n]\n"               // Загружаем n в ecx
         "test %%ecx, %%ecx\n"             // Если n == 0, выход
         "jz end_asm_loop\n"
         "xor %%ebx, %%ebx\n"              // Индекс i = 0
