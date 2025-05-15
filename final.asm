@@ -32,6 +32,8 @@ section .text
 main:
     push rbp
     mov rbp, rsp
+    ; Выравниваем стек до 16 байт
+    and rsp, -16
     
     ; Выделяем память и вводим данные
     call input_data
@@ -46,11 +48,16 @@ main:
     call free_memory
 
     ; Выход
-    mov rax, 0
+    mov rsp, rbp
     pop rbp
+    mov rax, 0
     ret
 
 input_data:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    
     ; Запрос количества элементов
     mov rdi, prompt_n
     xor rax, rax
@@ -156,9 +163,15 @@ input_data:
     jmp .input_loop
 
 .input_end:
+    mov rsp, rbp
+    pop rbp
     ret
 
 create_vectors:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    
     mov qword [i], 0
 .vector_loop:
     mov rax, [i]
@@ -203,9 +216,15 @@ create_vectors:
     jmp .vector_loop
 
 .vector_end:
+    mov rsp, rbp
+    pop rbp
     ret
 
 print_results:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    
     ; Вывод вектора целых чисел
     mov rdi, int_vec_msg
     xor rax, rax
@@ -295,9 +314,16 @@ print_results:
     mov rdi, newline
     xor rax, rax
     call printf
+    
+    mov rsp, rbp
+    pop rbp
     ret
 
 free_memory:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    
     mov rdi, [elements]
     call free
 
@@ -309,4 +335,7 @@ free_memory:
 
     mov rdi, [char_vec]
     call free
+    
+    mov rsp, rbp
+    pop rbp
     ret
