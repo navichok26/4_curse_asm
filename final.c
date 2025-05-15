@@ -86,12 +86,12 @@ int main() {
         "jmp next_iter\n"
 
         "set_float_label:\n"
-        "movq %[float_vec], %%rax\n"
+        "movq %[float_vec], %%rax\n"      // Исправлено - правильно используем float_vec
         "movb $1, (%%rax,%%rbx,1)\n"      // float_vec[i] = 1
         "jmp next_iter\n"
 
         "set_char_label:\n"
-        "movq %[char_vec], %%rax\n"
+        "movq %[char_vec], %%rax\n"       // Исправлено - правильно используем char_vec
         "movb $1, (%%rax,%%rbx,1)\n"      // char_vec[i] = 1
 
         "next_iter:\n"
