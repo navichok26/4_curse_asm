@@ -53,55 +53,58 @@ int main() {
 
     // Ассемблерная вставка
     asm volatile (
-        "movl %[n], %%r8\n"               // Загружаем n в r8
-        "test %%r8, %%r8\n"              // Если n == 0, выход
-        "jz end_asm_loop%=\n"
-        "xor %%r9, %%r9\n"               // Индекс i = 0
+        "mov %[n], %%ecx\n"               // Загружаем n в ecx (счетчик цикла)
+        "test %%ecx, %%ecx\n"             // Если n == 0, выход
+        "jz end_asm_loop\n"
+        "xor %%ebx, %%ebx\n"              // Индекс i = 0 (ebx)
 
-        "start_asm_loop%=:\n"
-        "cmp %%r9, %%r8\n"               // Сравниваем i и n
-        "jle end_asm_loop%=\n"
+        "start_asm_loop:\n"
+        "cmp %%ebx, %%ecx\n"              // Сравниваем i и n
+        "jle end_asm_loop\n"
 
         // Вычисляем адрес элемента
-        "movl %[elements], %%r10\n"
-        "movl %%r9, %%r11\n"
-        "imul $8, %%r11\n"              // i * sizeof(Element)
-        "add %%r11, %%r10\n"            // elements + i
+        "mov %[elements], %%eax\n"
+        "mov %%ebx, %%edx\n"
+        "imul $8, %%edx\n"               // i * sizeof(Element)
+        "add %%edx, %%eax\n"             // elements + i
 
         // Получаем тип элемента
-        "movl (%%r10), %%r11d\n"
+        "mov (%%eax), %%edx\n"           // elements[i].type
 
         // Проверяем тип и устанавливаем вектор
-        "cmp $0, %%r11d\n"
-        "je set_int_label%=\n"
-        "cmp $1, %%r11d\n"
-        "je set_float_label%=\n"
-        "cmp $2, %%r11d\n"
-        "je set_char_label%=\n"
-        "jmp next_iter_label%=\n"
+        "cmp $0, %%edx\n"
+        "je set_int_label\n"
+        "cmp $1, %%edx\n"
+        "je set_float_label\n"
+        "cmp $2, %%edx\n"
+        "je set_char_label\n"
+        "jmp next_iter\n"
 
-        "set_int_label%=:\n"
-        "movb $1, (%[int_vec], %%r9)\n"
-        "jmp next_iter_label%=\n"
+        "set_int_label:\n"
+        "mov %[int_vec], %%eax\n"
+        "movb $1, (%%eax, %%ebx)\n"
+        "jmp next_iter\n"
 
-        "set_float_label%=:\n"
-        "movb $1, (%[float_vec], %%r9)\n"
-        "jmp next_iter_label%=\n"
+        "set_float_label:\n"
+        "mov %[float_vec], %%eax\n"
+        "movb $1, (%%eax, %%ebx)\n"
+        "jmp next_iter\n"
 
-        "set_char_label%=:\n"
-        "movb $1, (%[char_vec], %%r9)\n"
-        "jmp next_iter_label%=\n"
+        "set_char_label:\n"
+        "mov %[char_vec], %%eax\n"
+        "movb $1, (%%eax, %%ebx)\n"
+        "jmp next_iter\n"
 
-        "next_iter_label%=:\n"
-        "inc %%r9\n"
-        "jmp start_asm_loop%=\n"
+        "next_iter:\n"
+        "inc %%ebx\n"
+        "jmp start_asm_loop\n"
 
-        "end_asm_loop%=:\n"
+        "end_asm_loop:\n"
         :
         : [elements] "r" (elements), [n] "r" (n),
           [int_vec] "r" (int_vec), [float_vec] "r" (float_vec),
           [char_vec] "r" (char_vec)
-        : "r8", "r9", "r10", "r11", "memory", "cc"
+        : "eax", "ebx", "ecx", "edx", "memory", "cc"
     );
 
     // Вывод результатов
