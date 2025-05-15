@@ -74,17 +74,6 @@ int main() {
         // Получаем тип элемента
         "movl (%%rax), %%edx\n"           // elements[i].type
 
-        // Отладочный вывод типа
-        "pushq %%rax\n"
-        "pushq %%rbx\n"
-        "pushq %%rcx\n"
-        "pushq %%rdx\n"
-
-        "popq %%rdx\n"
-        "popq %%rcx\n"
-        "popq %%rbx\n"
-        "popq %%rax\n"
-
         // Проверяем тип и устанавливаем вектор
         "cmpl $0, %%edx\n"
         "je set_int_label\n"
