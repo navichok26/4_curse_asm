@@ -53,7 +53,7 @@ int main() {
 
     // Ассемблерная вставка
     asm volatile (
-        "mov %[n], %%r8\n"               // Загружаем n в r8
+        "movl %[n], %%r8\n"               // Загружаем n в r8
         "test %%r8, %%r8\n"              // Если n == 0, выход
         "jz end_asm_loop%=\n"
         "xor %%r9, %%r9\n"               // Индекс i = 0
@@ -63,8 +63,8 @@ int main() {
         "jle end_asm_loop%=\n"
 
         // Вычисляем адрес элемента
-        "mov %[elements], %%r10\n"
-        "mov %%r9, %%r11\n"
+        "movl %[elements], %%r10\n"
+        "movl %%r9, %%r11\n"
         "imul $8, %%r11\n"              // i * sizeof(Element)
         "add %%r11, %%r10\n"            // elements + i
 
