@@ -12,23 +12,27 @@ section .data
     format_float   db "%f", 0
     format_char    db " %c", 0
     format_str     db "%s", 0
+    space          db " ", 0
 
 section .bss
-    n           resd 1
+    n           resq 1
     elements    resq 1
     int_vec     resq 1
     float_vec   resq 1
     char_vec    resq 1
-    i           resd 1
+    i           resq 1
     temp_int    resd 1
     temp_float  resd 1
     temp_char   resb 1
 
 section .text
     global main
-    extern printf, scanf, malloc, calloc, free
+    extern printf, scanf, malloc, calloc, free, putchar
 
 main:
+    push rbp
+    mov rbp, rsp
+    
     ; Выделяем память и вводим данные
     call input_data
 
@@ -42,78 +46,70 @@ main:
     call free_memory
 
     ; Выход
-    mov eax, 0
+    mov rax, 0
+    pop rbp
     ret
 
 input_data:
     ; Запрос количества элементов
-    push prompt_n
+    mov rdi, prompt_n
+    xor rax, rax
     call printf
-    add esp, 4
 
     ; Ввод n
-    push n
-    push format_int
+    mov rdi, format_int
+    mov rsi, n
+    xor rax, rax
     call scanf
-    add esp, 8
 
-    ; Выделяем память для элементов
-    mov eax, [n]
-    imul eax, 8          ; sizeof(Element) = 8 (enum + union)
-    push eax
+    ; Выделяем память для элементов (8 байт на элемент)
+    mov rdi, [n]
+    imul rdi, 8          ; sizeof(Element) = 8 (enum + union)
     call malloc
-    add esp, 4
-    mov [elements], eax
+    mov [elements], rax
 
     ; Выделяем память для векторов
-    mov eax, [n]
-    push eax
-    push 1
+    mov rdi, [n]
+    mov rsi, 1
     call calloc
-    add esp, 8
-    mov [int_vec], eax
+    mov [int_vec], rax
 
-    mov eax, [n]
-    push eax
-    push 1
+    mov rdi, [n]
+    mov rsi, 1
     call calloc
-    add esp, 8
-    mov [float_vec], eax
+    mov [float_vec], rax
 
-    mov eax, [n]
-    push eax
-    push 1
+    mov rdi, [n]
+    mov rsi, 1
     call calloc
-    add esp, 8
-    mov [char_vec], eax
+    mov [char_vec], rax
 
     ; Ввод элементов
-    mov dword [i], 0
+    mov qword [i], 0
 .input_loop:
-    mov eax, [i]
-    cmp eax, [n]
+    mov rax, [i]
+    cmp rax, [n]
     jge .input_end
 
     ; Вывод приглашения для типа
-    push eax
-    push prompt_type
+    mov rdi, prompt_type
+    mov rsi, [i]
+    xor rax, rax
     call printf
-    add esp, 8
 
     ; Ввод типа
-    lea eax, [temp_int]
-    push eax
-    push format_int
+    mov rdi, format_int
+    mov rsi, temp_int
+    xor rax, rax
     call scanf
-    add esp, 8
 
     ; Сохраняем тип в структуре
-    mov ecx, [elements]
-    mov edx, [i]
-    imul edx, 8
-    add ecx, edx
+    mov rcx, [elements]
+    mov rdx, [i]
+    imul rdx, 8
+    add rcx, rdx
     mov eax, [temp_int]
-    mov [ecx], eax
+    mov [rcx], eax
 
     ; Ввод значения в зависимости от типа
     cmp eax, 0
@@ -124,62 +120,59 @@ input_data:
     je .input_char
 
 .input_int:
-    push prompt_int
+    mov rdi, prompt_int
+    xor rax, rax
     call printf
-    add esp, 4
 
-    lea eax, [ecx+4]  ; поле value.i
-    push eax
-    push format_int
+    lea rsi, [rcx+4]  ; поле value.i
+    mov rdi, format_int
+    xor rax, rax
     call scanf
-    add esp, 8
     jmp .input_next
 
 .input_float:
-    push prompt_float
+    mov rdi, prompt_float
+    xor rax, rax
     call printf
-    add esp, 4
 
-    lea eax, [ecx+4]  ; поле value.f
-    push eax
-    push format_float
+    lea rsi, [rcx+4]  ; поле value.f
+    mov rdi, format_float
+    xor rax, rax
     call scanf
-    add esp, 8
     jmp .input_next
 
 .input_char:
-    push prompt_char
+    mov rdi, prompt_char
+    xor rax, rax
     call printf
-    add esp, 4
 
-    lea eax, [ecx+4]  ; поле value.c
-    push eax
-    push format_char
+    lea rsi, [rcx+4]  ; поле value.c
+    mov rdi, format_char
+    xor rax, rax
     call scanf
-    add esp, 8
 
 .input_next:
-    inc dword [i]
+    inc qword [i]
     jmp .input_loop
 
 .input_end:
     ret
 
 create_vectors:
-    mov dword [i], 0
+    mov qword [i], 0
 .vector_loop:
-    mov eax, [i]
-    cmp eax, [n]
+    mov rax, [i]
+    cmp rax, [n]
     jge .vector_end
 
     ; Получаем текущий элемент
-    mov ecx, [elements]
-    mov edx, eax
-    imul edx, 8
-    add ecx, edx
+    mov rcx, [elements]
+    mov rdx, [i]
+    imul rdx, 8
+    add rcx, rdx
 
     ; Проверяем тип
-    mov edx, [ecx]
+    mov edx, [rcx]
     cmp edx, 0
     je .set_int
     cmp edx, 1
@@ -189,24 +182,24 @@ create_vectors:
     jmp .next_iter
 
 .set_int:
-    mov ecx, [int_vec]
-    add ecx, [i]
-    mov byte [ecx], 1
+    mov rcx, [int_vec]
+    add rcx, [i]
+    mov byte [rcx], 1
     jmp .next_iter
 
 .set_float:
-    mov ecx, [float_vec]
-    add ecx, [i]
-    mov byte [ecx], 1
+    mov rcx, [float_vec]
+    add rcx, [i]
+    mov byte [rcx], 1
     jmp .next_iter
 
 .set_char:
-    mov ecx, [char_vec]
-    add ecx, [i]
-    mov byte [ecx], 1
+    mov rcx, [char_vec]
+    add rcx, [i]
+    mov byte [rcx], 1
 
 .next_iter:
-    inc dword [i]
+    inc qword [i]
     jmp .vector_loop
 
 .vector_end:
@@ -214,113 +207,106 @@ create_vectors:
 
 print_results:
     ; Вывод вектора целых чисел
-    push int_vec_msg
+    mov rdi, int_vec_msg
+    xor rax, rax
     call printf
-    add esp, 4
 
-    mov dword [i], 0
+    mov qword [i], 0
 .print_int_loop:
-    mov eax, [i]
-    cmp eax, [n]
+    mov rax, [i]
+    cmp rax, [n]
     jge .print_int_end
 
-    mov ecx, [int_vec]
-    add ecx, eax
-    movzx eax, byte [ecx]
-    push eax
-    push format_int
+    mov rcx, [int_vec]
+    add rcx, [i]
+    movzx rdi, byte [rcx]
+    mov rsi, format_int
+    xor rax, rax
     call printf
-    add esp, 8
 
-    push ' '
-    call putchar
-    add esp, 4
+    mov rdi, space
+    xor rax, rax
+    call printf
 
-    inc dword [i]
+    inc qword [i]
     jmp .print_int_loop
 
 .print_int_end:
-    push newline
+    mov rdi, newline
+    xor rax, rax
     call printf
-    add esp, 4
 
     ; Вывод вектора вещественных чисел
-    push float_vec_msg
+    mov rdi, float_vec_msg
+    xor rax, rax
     call printf
-    add esp, 4
 
-    mov dword [i], 0
+    mov qword [i], 0
 .print_float_loop:
-    mov eax, [i]
-    cmp eax, [n]
+    mov rax, [i]
+    cmp rax, [n]
     jge .print_float_end
 
-    mov ecx, [float_vec]
-    add ecx, eax
-    movzx eax, byte [ecx]
-    push eax
-    push format_int
+    mov rcx, [float_vec]
+    add rcx, [i]
+    movzx rdi, byte [rcx]
+    mov rsi, format_int
+    xor rax, rax
     call printf
-    add esp, 8
 
-    push ' '
-    call putchar
-    add esp, 4
+    mov rdi, space
+    xor rax, rax
+    call printf
 
-    inc dword [i]
+    inc qword [i]
     jmp .print_float_loop
 
 .print_float_end:
-    push newline
+    mov rdi, newline
+    xor rax, rax
     call printf
-    add esp, 4
 
     ; Вывод вектора символов
-    push char_vec_msg
+    mov rdi, char_vec_msg
+    xor rax, rax
     call printf
-    add esp, 4
 
-    mov dword [i], 0
+    mov qword [i], 0
 .print_char_loop:
-    mov eax, [i]
-    cmp eax, [n]
+    mov rax, [i]
+    cmp rax, [n]
     jge .print_char_end
 
-    mov ecx, [char_vec]
-    add ecx, eax
-    movzx eax, byte [ecx]
-    push eax
-    push format_int
+    mov rcx, [char_vec]
+    add rcx, [i]
+    movzx rdi, byte [rcx]
+    mov rsi, format_int
+    xor rax, rax
     call printf
-    add esp, 8
 
-    push ' '
-    call putchar
-    add esp, 4
+    mov rdi, space
+    xor rax, rax
+    call printf
 
-    inc dword [i]
+    inc qword [i]
     jmp .print_char_loop
 
 .print_char_end:
-    push newline
+    mov rdi, newline
+    xor rax, rax
     call printf
-    add esp, 4
     ret
 
 free_memory:
-    push dword [elements]
+    mov rdi, [elements]
     call free
-    add esp, 4
 
-    push dword [int_vec]
+    mov rdi, [int_vec]
     call free
-    add esp, 4
 
-    push dword [float_vec]
+    mov rdi, [float_vec]
     call free
-    add esp, 4
 
-    push dword [char_vec]
+    mov rdi, [char_vec]
     call free
-    add esp, 4
     ret
