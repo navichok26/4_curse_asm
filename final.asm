@@ -78,6 +78,7 @@ input_loop:
     xor eax, eax
     call printf
 
+    sub  rsp, 8
     lea rdi, [format_int]
     lea rsi, [temp_int]
     xor eax, eax
