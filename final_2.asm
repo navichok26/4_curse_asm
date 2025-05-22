@@ -94,7 +94,9 @@ print_sums_loop:
     mov rdx, rax
     mov rdi, fmt_sum
     xor eax, eax
+    push rcx            ; сохранить счётчик
     call printf
+    pop rcx             ; восстановить счётчик
 
     inc rcx
     jmp print_sums_loop
