@@ -19,6 +19,7 @@ section .text
 main:
     push rbp
     mov rbp, rsp
+    sub rsp, 8
 
     mov rcx, 0
 rowsum_loop:
