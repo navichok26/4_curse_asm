@@ -21,7 +21,7 @@ main:
     push rbp
     mov rbp, rsp
     and rsp, -16      ; Выравнивание стека по 16 байтам
-    sub rsp, 32       ; Выделяем место на стеке (16 + 16)
+    sub rsp, 40       ; Выделяем место на стеке (16 + 16)
 
     mov rcx, 0
 rowsum_loop:
