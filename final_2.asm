@@ -19,7 +19,8 @@ section .text
 main:
     push rbp
     mov rbp, rsp
-    sub rsp, 8
+    and rsp, -16    ; Выравнивание стека по 16 байтам
+    sub rsp, 16     ; Выделяем выровненное пространство для локальных переменных
 
     mov rcx, 0
 rowsum_loop:
@@ -95,15 +96,15 @@ print_sums_loop:
 
     ; Преобразуем double в целое для печати
     fld qword [row_sums + rcx*8]
-    fistp dword [rsp-4]         ; преобразование в int на стеке
-    mov edx, [rsp-4]            ; получаем целое число
+    fistp dword [rsp]         ; Используем выделенное место, а не rsp-4
+    mov edx, [rsp]            ; получаем целое число
     
     mov edi, fmt_sum
     mov esi, ecx                ; номер строки
     xor eax, eax                ; нет векторных аргументов
-    push rcx
+    push rcx                    ; сохраняем счетчик
     call printf
-    pop rcx
+    pop rcx                     ; восстанавливаем счетчик
 
     inc rcx
     jmp print_sums_loop
@@ -111,8 +112,8 @@ print_sums_loop:
 print_minmax:
     ; Вывод минимума
     fld qword [row_sums+40]     ; min
-    fistp dword [rsp-4]
-    mov esi, [rsp-4]
+    fistp dword [rsp]           ; Исправлено - используем выделенное место
+    mov esi, [rsp]
     
     mov edi, fmt_min
     xor eax, eax
@@ -120,15 +121,15 @@ print_minmax:
 
     ; Вывод максимума
     fld qword [row_sums+48]     ; max
-    fistp dword [rsp-4]
-    mov esi, [rsp-4]
+    fistp dword [rsp]           ; Исправлено - используем выделенное место
+    mov esi, [rsp]
     
     mov edi, fmt_max
     xor eax, eax
     call printf
 
 _exit:
-    mov rsp, rbp
+    mov rsp, rbp                ; Восстанавливаем исходный указатель стека
     pop rbp
-    xor eax, eax               ; return 0
+    xor eax, eax                ; return 0
     ret
