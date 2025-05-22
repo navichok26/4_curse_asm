@@ -5,12 +5,13 @@ section .data
            dq 6.6, -7.7, 8.8, 9.9, -10.1
            dq 1.0, 2.0, 3.0, 4.0, 5.0
 
-    fmt_sum db "Sum of row %d: %d", 10, 0
-    fmt_min db "Min sum: %d", 10, 0
-    fmt_max db "Max sum: %d", 10, 0
+    fmt_sum db "Sum of row %d: %.2f", 10, 0
+    fmt_min db "Min sum: %.2f", 10, 0
+    fmt_max db "Max sum: %.2f", 10, 0
+    fmt_ln  db "ln(abs(sum row %d)): %.6f", 10, 0
 
 section .bss
-    row_sums resq 5
+    row_sums resq 6   ; 5 сумм + 1 для min/max
 
 section .text
     extern printf
@@ -19,7 +20,8 @@ section .text
 main:
     push rbp
     mov rbp, rsp
-    sub rsp, 8
+    and rsp, -16      ; Выравнивание стека по 16 байтам
+    sub rsp, 32       ; Выделяем место на стеке (16 + 16)
 
     mov rcx, 0
 rowsum_loop:
@@ -63,25 +65,25 @@ find_minmax_loop:
     fld qword [row_sums + rcx*8]
     fld qword [row_sums+48]     ; max
     fcomi st0, st1
-    jae .skip_max
-    fstp qword [row_sums+48]
-    fstp st0
+    jbe .skip_max               ; если сумма <= max, пропускаем
+    fstp st0                    ; убираем max со стека
+    fstp qword [row_sums+48]    ; сохраняем новый max
     jmp .after_max
 .skip_max:
-    fstp st0
-    fstp st0
+    fstp st0                    ; убираем max со стека
+    fstp st0                    ; убираем сумму со стека
 .after_max:
 
     fld qword [row_sums + rcx*8]
     fld qword [row_sums+40]     ; min
     fcomi st0, st1
-    jbe .skip_min
-    fstp qword [row_sums+40]
-    fstp st0
+    jae .skip_min               ; если сумма >= min, пропускаем
+    fstp st0                    ; убираем min со стека
+    fstp qword [row_sums+40]    ; сохраняем новый min
     jmp .after_min
 .skip_min:
-    fstp st0
-    fstp st0
+    fstp st0                    ; убираем min со стека
+    fstp st0                    ; убираем сумму со стека
 .after_min:
 
     jmp find_minmax_loop
@@ -93,14 +95,13 @@ print_sums_loop:
     cmp rcx, 5
     jge print_minmax
 
-    ; Преобразуем double в целое для печати
+    ; Передаем double через стек для printf
+    mov rdi, fmt_sum
+    mov rsi, rcx                ; номер строки
     fld qword [row_sums + rcx*8]
-    fistp dword [rsp-4]         ; преобразование в int на стеке
-    mov edx, [rsp-4]            ; получаем целое число
-    
-    mov edi, fmt_sum
-    mov esi, ecx                ; номер строки
-    xor eax, eax                ; нет векторных аргументов
+    fstp qword [rsp]           ; Сохраняем double на стеке
+    movsd xmm0, [rsp]          ; Загружаем в xmm0 для printf
+    mov eax, 1                  ; 1 xmm-регистр используется
     push rcx
     call printf
     pop rcx
@@ -110,26 +111,46 @@ print_sums_loop:
 
 print_minmax:
     ; Вывод минимума
+    mov rdi, fmt_min
     fld qword [row_sums+40]     ; min
-    fistp dword [rsp-4]
-    mov esi, [rsp-4]
-    
-    sub rsp, 8
-    mov edi, fmt_min
-    xor eax, eax
+    fstp qword [rsp]
+    movsd xmm0, [rsp]
+    mov eax, 1                  ; 1 xmm-регистр используется
     call printf
 
     ; Вывод максимума
-    add rsp, 8
+    mov rdi, fmt_max
     fld qword [row_sums+48]     ; max
-    fistp dword [rsp-4]
-    mov esi, [rsp-4]
-    
-    sub rsp, 8
-    mov edi, fmt_max
-    xor eax, eax
+    fstp qword [rsp]
+    movsd xmm0, [rsp]
+    mov eax, 1                  ; 1 xmm-регистр используется
     call printf
-    add rsp, 8
+
+    ; Вывод натурального логарифма abs(сумм)
+    mov rcx, 0
+ln_loop:
+    cmp rcx, 5
+    jge _exit
+
+    ; ln(abs(sum))
+    fld qword [row_sums + rcx*8]
+    fabs                        ; abs(sum)
+    fldln2                      ; загрузка ln(2)
+    fxch                        ; меняем местами
+    fyl2x                       ; st0 = ln(abs(sum))
+    
+    fstp qword [rsp]            ; Сохраняем результат
+    movsd xmm0, [rsp]
+    
+    mov rdi, fmt_ln
+    mov rsi, rcx
+    mov eax, 1
+    push rcx
+    call printf
+    pop rcx
+    
+    inc rcx
+    jmp ln_loop
 
 _exit:
     mov rsp, rbp
