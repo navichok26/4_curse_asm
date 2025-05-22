@@ -116,7 +116,9 @@ print_minmax:
     fstp qword [rsp]
     movsd xmm0, [rsp]
     mov eax, 1                  ; 1 xmm-регистр используется
+    sub rsp, 8                  ; <--- ВЫРАВНИВАЕМ стек
     call printf
+    add rsp, 8                  ; <--- ВОССТАНАВЛИВАЕМ стек
 
     ; Вывод максимума
     mov rdi, fmt_max
@@ -124,7 +126,9 @@ print_minmax:
     fstp qword [rsp]
     movsd xmm0, [rsp]
     mov eax, 1                  ; 1 xmm-регистр используется
+    sub rsp, 8                  ; <--- ВЫРАВНИВАЕМ стек
     call printf
+    add rsp, 8                  ; <--- ВОССТАНАВЛИВАЕМ стек
 
     ; Вывод натурального логарифма abs(сумм)
     mov rcx, 0
