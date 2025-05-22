@@ -16,9 +16,9 @@ section .bss
     buf resb 100
 
 section .text
-    global _start
+    global main
 
-_start:
+main:
     mov rcx, 0              ; row index
 rowsum_loop:
     cmp rcx, 5
