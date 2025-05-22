@@ -5,7 +5,9 @@ section .data
            dq 6.6, -7.7, 8.8, 9.9, -10.1
            dq 1.0, 2.0, 3.0, 4.0, 5.0
 
-    fmt_sum db "Sum of row %d: %ld", 10, 0
+    fmt_sum db "Sum of row %d: %d", 10, 0
+    fmt_min db "Min sum: %d", 10, 0
+    fmt_max db "Max sum: %d", 10, 0
 
 section .bss
     row_sums resq 5
@@ -16,6 +18,7 @@ section .text
 
 main:
     push rbp
+    mov rbp, rsp
 
     mov rcx, 0
 rowsum_loop:
@@ -87,20 +90,44 @@ find_minmax_done:
     mov rcx, 0
 print_sums_loop:
     cmp rcx, 5
-    jge _exit
+    jge print_minmax
 
-    mov rax, [row_sums + rcx*8]
-    mov rsi, rcx
-    mov rdx, rax
-    mov rdi, fmt_sum
-    xor eax, eax
-    push rcx            ; сохранить счётчик
+    ; Преобразуем double в целое для печати
+    fld qword [row_sums + rcx*8]
+    fistp dword [rsp-4]         ; преобразование в int на стеке
+    mov edx, [rsp-4]            ; получаем целое число
+    
+    mov edi, fmt_sum
+    mov esi, ecx                ; номер строки
+    xor eax, eax                ; нет векторных аргументов
+    push rcx
     call printf
-    pop rcx             ; восстановить счётчик
+    pop rcx
 
     inc rcx
     jmp print_sums_loop
 
+print_minmax:
+    ; Вывод минимума
+    fld qword [row_sums+40]     ; min
+    fistp dword [rsp-4]
+    mov esi, [rsp-4]
+    
+    mov edi, fmt_min
+    xor eax, eax
+    call printf
+
+    ; Вывод максимума
+    fld qword [row_sums+48]     ; max
+    fistp dword [rsp-4]
+    mov esi, [rsp-4]
+    
+    mov edi, fmt_max
+    xor eax, eax
+    call printf
+
 _exit:
+    mov rsp, rbp
     pop rbp
+    xor eax, eax               ; return 0
     ret
