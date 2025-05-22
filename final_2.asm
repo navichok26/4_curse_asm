@@ -5,10 +5,7 @@ section .data
            dq 6.6, -7.7, 8.8, 9.9, -10.1
            dq 1.0, 2.0, 3.0, 4.0, 5.0
 
-    fmt_sum db "Sum of row %d: %.6lf", 10, 0
-    fmt_min db "Min sum: %.6lf", 10, 0
-    fmt_max db "Max sum: %.6lf", 10, 0
-    fmt_ln  db "ln(abs(sum)): %.6lf", 10, 0
+    fmt_sum db "Sum of row %d: %ld", 10, 0
 
 section .bss
     row_sums resq 5
@@ -20,7 +17,7 @@ section .text
 main:
     push rbp
 
-    mov rcx, 0              ; row index
+    mov rcx, 0
 rowsum_loop:
     cmp rcx, 5
     jge rowsum_done
@@ -90,50 +87,18 @@ find_minmax_done:
     mov rcx, 0
 print_sums_loop:
     cmp rcx, 5
-    jge print_minmax
+    jge _exit
 
-    mov edi, fmt_sum
-    mov esi, rcx
-    movq xmm0, qword [row_sums + rcx*8]
-    mov eax, 2
+    mov rax, [row_sums + rcx*8]
+    mov rsi, rcx
+    mov rdx, rax
+    mov rdi, fmt_sum
+    xor eax, eax
     call printf
 
     inc rcx
     jmp print_sums_loop
 
-print_minmax:
-    mov edi, fmt_min
-    movq xmm0, qword [row_sums+40]
-    mov eax, 1
-    call printf
-
-    mov edi, fmt_max
-    movq xmm0, qword [row_sums+48]
-    mov eax, 1
-    call printf
-
-    ; print ln(abs(sum))
-    mov rcx, 0
-ln_loop:
-    cmp rcx, 5
-    jge _exit
-
-    fld qword [row_sums + rcx*8]
-    fabs
-    fldln2
-    fxch
-    fyl2x
-    fstp qword [row_sums+56]
-
-    mov edi, fmt_ln
-    movq xmm0, qword [row_sums+56]
-    mov eax, 1
-    call printf
-
-    inc rcx
-    jmp ln_loop
-
 _exit:
-    mov eax, 0
     pop rbp
     ret
