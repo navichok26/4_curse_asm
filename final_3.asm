@@ -15,7 +15,7 @@ main:
     ; prologue: выравниваем RSP на 16-байтную границу
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 8
+    sub     rsp, 16
 
     ; Ввод первого битового вектора как строки
     lea     rdi, [rel fmt_scan]
