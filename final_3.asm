@@ -12,6 +12,11 @@ section .bss
 
 section .text
 main:
+    ; prologue: выравниваем RSP на 16-байтную границу
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 8
+
     ; Ввод первого битового вектора как строки
     lea     rdi, [rel fmt_scan]
     lea     rsi, [rel buf1]
@@ -75,9 +80,11 @@ count_loop:
     ; Вывод результата
 output:
     lea     rdi, [rel fmt_out]
-    mov     esi, ebx        ; число несовпадающих битов
+    mov     esi, ebx
     xor     eax, eax
     call    printf
 
+    ; epilogue: восстанавливаем стек
     xor     eax, eax
+    leave
     ret
